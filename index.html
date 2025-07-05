@@ -437,23 +437,11 @@
 
             // Initialize the database if empty
             function initializeDatabase() {
-                tasksRef.once('value', (snapshot) => {
-                    if (!snapshot.exists()) {
-                        const initialData = {
-                            "task1": {
-                                "id": "task1",
-                                "title": "Sample Task",
-                                "description": "This is a sample task",
-                                "status": "todo",
-                                "createdAt": new Date().toISOString(),
-                                "deadline": "",
-                                "responsibles": ["iheb"]
-                            }
-                        };
-                        tasksRef.set(initialData);
-                        console.log("Database initialized with sample data");
-                    }
-                });
+               tasksRef.once('value', (snapshot) => {
+        if (!snapshot.exists()) {
+            console.log("Database is empty - no sample data needed");
+        }
+    });
             }
 
             // Load tasks from Firebase
