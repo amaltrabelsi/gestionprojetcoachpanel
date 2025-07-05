@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Project Management</title>
+    <title>Advanced Task Management System</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -304,7 +304,7 @@
 <body>
     <div class="container">
         <header>
-            <h1><i class="fas fa-tasks"></i> Project Management</h1>
+            <h1><i class="fas fa-tasks"></i> Task Management System</h1>
             <button class="btn" id="new-task-btn">
                 <i class="fas fa-plus"></i> New Task
             </button>
@@ -360,21 +360,21 @@
         <div class="modal" id="task-modal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2>New Task</h2>
+                    <h2>Create New Task</h2>
                     <button class="close-modal">&times;</button>
                 </div>
                 <form id="task-form">
                     <div class="form-group">
-                        <label for="task-title">Title</label>
-                        <input type="text" id="task-title" required>
+                        <label for="task-title">Task Title*</label>
+                        <input type="text" id="task-title" required placeholder="Enter task name">
                     </div>
                     <div class="form-group">
                         <label for="task-desc">Description</label>
-                        <textarea id="task-desc"></textarea>
+                        <textarea id="task-desc" placeholder="Task details..."></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="task-status">Status</label>
-                        <select id="task-status">
+                        <label for="task-status">Status*</label>
+                        <select id="task-status" required>
                             <option value="todo">To Do</option>
                             <option value="done">Done</option>
                             <option value="completed">Completed</option>
@@ -386,16 +386,15 @@
                         <input type="datetime-local" id="task-deadline">
                     </div>
                     <div class="form-group">
-                        <label>Responsibles</label>
+                        <label>Assign To</label>
                         <div class="select-multi" id="responsibles-select">
-                            <div class="select-multi-option" data-value="iheb">Mr.Iheb</div>
-                            <div class="select-multi-option" data-value="amal">M.Amal</div>
-                            <div class="select-multi-option" data-value="azer">Mr.Azer</div>
-                             <div class="select-multi-option" data-value="Abdelkader">Mr.Abdelkader</div>
-
+                            <div class="select-multi-option" data-value="iheb">Mr. Iheb</div>
+                            <div class="select-multi-option" data-value="amal">Ms. Amal</div>
+                            <div class="select-multi-option" data-value="azer">Mr. Azer</div>
+                            <div class="select-multi-option" data-value="abdelkader">Mr. Abdelkader</div>
                         </div>
                     </div>
-                    <button type="submit" class="btn">Create Task</button>
+                    <button type="submit" class="btn">Save Task</button>
                 </form>
             </div>
         </div>
@@ -435,33 +434,11 @@
             let draggedTask = null;
             let selectedResponsibles = [];
 
-            // Initialize the database if empty
-            function initializeDatabase() {
-                tasksRef.once('value', (snapshot) => {
-                    if (!snapshot.exists()) {
-                        const initialData = {
-                            "task1": {
-                                "id": "task1",
-                                "title": "Sample Task",
-                                "description": "This is a sample task",
-                                "status": "todo",
-                                "createdAt": new Date().toISOString(),
-                                "deadline": "",
-                                "responsibles": ["iheb"]
-                            }
-                        };
-                        tasksRef.set(initialData);
-                        console.log("Database initialized with sample data");
-                    }
-                });
-            }
-
             // Load tasks from Firebase
             function loadTasks() {
                 tasksRef.on('value', (snapshot) => {
                     const data = snapshot.val();
                     tasks = data ? Object.values(data) : [];
-                    console.log("Tasks loaded:", tasks);
                     renderTasks();
                     updateCounters();
                 });
@@ -503,20 +480,20 @@
 
                 const deadlineText = task.deadline 
                     ? new Date(task.deadline).toLocaleString() 
-                    : 'No deadline';
+                    : 'No deadline set';
 
                 const responsiblesHTML = task.responsibles && task.responsibles.length > 0
                     ? task.responsibles.map(r => 
                         `<span class="responsible-tag">${getResponsibleName(r)}</span>`
                       ).join('')
-                    : '<em>No responsibles</em>';
+                    : '<em>Unassigned</em>';
 
                 taskEl.innerHTML = `
                     <h3>${task.title}</h3>
-                    <p>${task.description}</p>
+                    <p>${task.description || 'No description'}</p>
                     <div class="task-meta">
                         <small>Created: ${new Date(task.createdAt).toLocaleDateString()}</small>
-                        <small>Deadline: ${deadlineText}</small>
+                        <small>Due: ${deadlineText}</small>
                     </div>
                     <div class="task-responsibles">
                         ${responsiblesHTML}
@@ -539,19 +516,14 @@
                 const names = {
                     'iheb': 'Iheb',
                     'amal': 'Amal',
-                    'azer': 'Azer'
+                    'azer': 'Azer',
+                    'abdelkader': 'Abdelkader'
                 };
                 return names[value] || value;
             }
 
-            // Update task counters - CORRIGÉE
+            // Update task counters
             function updateCounters() {
-                // Reset all counters to 0 first
-                document.querySelectorAll('.task-count').forEach(counter => {
-                    counter.textContent = '0';
-                });
-
-                // Count tasks by status
                 const statusCounts = {
                     todo: 0,
                     done: 0,
@@ -650,66 +622,76 @@
                     option.classList.toggle('selected');
                     
                     if (option.classList.contains('selected')) {
-                        selectedResponsibles.push(value);
+                        if (!selectedResponsibles.includes(value)) {
+                            selectedResponsibles.push(value);
+                        }
                     } else {
                         selectedResponsibles = selectedResponsibles.filter(r => r !== value);
                     }
                 }
             });
 
-            // Form submission
+            // Form submission for new task
             taskForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 
                 const newTask = {
                     id: 'task' + Date.now(),
-                    title: document.getElementById('task-title').value,
-                    description: document.getElementById('task-desc').value,
+                    title: document.getElementById('task-title').value.trim(),
+                    description: document.getElementById('task-desc').value.trim(),
                     status: document.getElementById('task-status').value,
                     deadline: document.getElementById('task-deadline').value,
                     createdAt: new Date().toISOString(),
                     responsibles: [...selectedResponsibles]
                 };
 
+                // Validate required fields
+                if (!newTask.title) {
+                    alert('Task title is required!');
+                    return;
+                }
+
                 // Save to Firebase
                 tasksRef.child(newTask.id).set(newTask)
                     .then(() => {
-                        // Add to local array and update counters
-                        tasks.push(newTask);
-                        updateCounters();
+                        // Reset form
+                        taskForm.reset();
+                        selectedResponsibles = [];
+                        document.querySelectorAll('.select-multi-option').forEach(opt => {
+                            opt.classList.remove('selected');
+                        });
+                        taskModal.style.display = 'none';
+                    })
+                    .catch(error => {
+                        console.error("Error saving task:", error);
+                        alert('Failed to save task. Please try again.');
                     });
-                
-                // Close modal and reset form
-                taskModal.style.display = 'none';
-                taskForm.reset();
-                selectedResponsibles = [];
-                document.querySelectorAll('.select-multi-option').forEach(opt => {
-                    opt.classList.remove('selected');
-                });
             });
 
             // Event delegation for edit/delete buttons
             document.addEventListener('click', (e) => {
+                // Delete task
                 if (e.target.closest('.delete-btn')) {
                     const taskId = e.target.closest('.delete-btn').dataset.id;
                     if (confirm('Are you sure you want to delete this task?')) {
                         tasksRef.child(taskId).remove()
-                            .then(() => {
-                                // Remove from local array and update counters
-                                tasks = tasks.filter(t => t.id !== taskId);
-                                updateCounters();
+                            .catch(error => {
+                                console.error("Error deleting task:", error);
+                                alert('Failed to delete task.');
                             });
                     }
                 }
                 
+                // Edit task
                 if (e.target.closest('.edit-btn')) {
                     const taskId = e.target.closest('.edit-btn').dataset.id;
                     const task = tasks.find(t => t.id === taskId);
                     if (task) {
+                        // Populate form with task data
                         document.getElementById('task-title').value = task.title;
-                        document.getElementById('task-desc').value = task.description;
+                        document.getElementById('task-desc').value = task.description || '';
                         document.getElementById('task-status').value = task.status;
-                        document.getElementById('task-deadline').value = task.deadline;
+                        document.getElementById('task-deadline').value = task.deadline || '';
                         
                         // Set selected responsibles
                         selectedResponsibles = [...(task.responsibles || [])];
@@ -720,34 +702,48 @@
                             );
                         });
                         
+                        // Show modal
                         taskModal.style.display = 'flex';
                         
-                        // Update form submission to edit instead of create
+                        // Update modal title
+                        document.querySelector('.modal-header h2').textContent = 'Edit Task';
+                        
+                        // Update form submission handler for editing
+                        const originalSubmitHandler = taskForm.onsubmit;
                         taskForm.onsubmit = (e) => {
                             e.preventDefault();
+                            
                             const updatedTask = {
                                 ...task,
-                                title: document.getElementById('task-title').value,
-                                description: document.getElementById('task-desc').value,
+                                title: document.getElementById('task-title').value.trim(),
+                                description: document.getElementById('task-desc').value.trim(),
                                 status: document.getElementById('task-status').value,
                                 deadline: document.getElementById('task-deadline').value,
                                 responsibles: [...selectedResponsibles]
                             };
+
+                            // Validate required fields
+                            if (!updatedTask.title) {
+                                alert('Task title is required!');
+                                return;
+                            }
+
                             tasksRef.child(taskId).update(updatedTask)
                                 .then(() => {
-                                    // Update local array and counters
-                                    const index = tasks.findIndex(t => t.id === taskId);
-                                    if (index !== -1) {
-                                        tasks[index] = updatedTask;
-                                        updateCounters();
-                                    }
+                                    // Reset form and close modal
+                                    taskForm.reset();
+                                    selectedResponsibles = [];
+                                    document.querySelectorAll('.select-multi-option').forEach(opt => {
+                                        opt.classList.remove('selected');
+                                    });
+                                    taskModal.style.display = 'none';
+                                    // Restore original submit handler
+                                    taskForm.onsubmit = originalSubmitHandler;
+                                })
+                                .catch(error => {
+                                    console.error("Error updating task:", error);
+                                    alert('Failed to update task. Please try again.');
                                 });
-                            taskModal.style.display = 'none';
-                            taskForm.reset();
-                            selectedResponsibles = [];
-                            document.querySelectorAll('.select-multi-option').forEach(opt => {
-                                opt.classList.remove('selected');
-                            });
                         };
                     }
                 }
@@ -755,44 +751,32 @@
 
             // Modal controls
             newTaskBtn.addEventListener('click', () => {
-                taskModal.style.display = 'flex';
-                // Reset form handler for new task
-                taskForm.onsubmit = (e) => {
-                    e.preventDefault();
-                    const newTask = {
-                        id: 'task' + Date.now(),
-                        title: document.getElementById('task-title').value,
-                        description: document.getElementById('task-desc').value,
-                        status: document.getElementById('task-status').value,
-                        deadline: document.getElementById('task-deadline').value,
-                        createdAt: new Date().toISOString(),
-                        responsibles: [...selectedResponsibles]
-                    };
-                    tasksRef.child(newTask.id).set(newTask)
-                        .then(() => {
-                            tasks.push(newTask);
-                            updateCounters();
-                        });
-                    taskModal.style.display = 'none';
-                    taskForm.reset();
-                    selectedResponsibles = [];
-                    document.querySelectorAll('.select-multi-option').forEach(opt => {
-                        opt.classList.remove('selected');
-                    });
-                };
-            });
-
-            closeModal.addEventListener('click', () => {
-                taskModal.style.display = 'none';
+                // Reset form
                 taskForm.reset();
                 selectedResponsibles = [];
                 document.querySelectorAll('.select-multi-option').forEach(opt => {
                     opt.classList.remove('selected');
                 });
+                
+                // Set modal title
+                document.querySelector('.modal-header h2').textContent = 'Create New Task';
+                
+                // Show modal
+                taskModal.style.display = 'flex';
+            });
+
+            closeModal.addEventListener('click', () => {
+                taskModal.style.display = 'none';
+            });
+
+            // Close modal when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target === taskModal) {
+                    taskModal.style.display = 'none';
+                }
             });
 
             // Initialize the app
-            initializeDatabase();
             loadTasks();
         });
     </script>
