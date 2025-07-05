@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Project Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --todo: #ff5e57;
+            --done: #ffbb33;
+            --completed: #00c851;
+            --validated: #9b59b6;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #2c3e50;
+            --text-light: #7f8c8d;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .column {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            min-height: 70vh;
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .column-title {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .task-count {
+            background-color: var(--border);
+            color: var(--text);
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .tasks {
+            min-height: 100px;
+            transition: all 0.2s;
+        }
+
+        .task {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 15px;
+            box-shadow: var(--shadow);
+            cursor: grab;
+            transition: all 0.2s;
+            border-left: 4px solid var(--todo);
+        }
+
+        .task.todo { border-left-color: var(--todo); }
+        .task.done { border-left-color: var(--done); }
+        .task.completed { border-left-color: var(--completed); }
+        .task.validated { border-left-color: var(--validated); }
+
+        .task h3 {
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        .task p {
+            color: var(--text-light);
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-light);
+            margin-bottom: 12px;
+        }
+
+        .task-responsibles {
+            display: flex;
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .responsible-tag {
+            background-color: var(--primary);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .task-btn {
+            padding: 6px 10px;
+            font-size: 12px;
+            border-radius: 4px;
+            background: var(--border);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .task-btn.delete-btn {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .select-multi {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            padding: 8px;
+        }
+
+        .select-multi-option {
+            background-color: var(--border);
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .select-multi-option.selected {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .dragging {
+            opacity: 0.5;
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .dropzone {
+            background: rgba(70, 130, 180, 0.05);
+            border: 2px dashed var(--primary);
+            border-radius: 8px;
+            min-height: 100px;
+            transition: all 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-tasks"></i> Project Management</h1>
+            <button class="btn" id="new-task-btn">
+                <i class="fas fa-plus"></i> New Task
+            </button>
+        </header>
+
+        <div class="board">
+            <!-- To Do Column -->
+            <div class="column" id="todo-column">
+                <div class="column-header">
+                    <span class="column-title">
+                        <i class="fas fa-circle" style="color: var(--todo);"></i> To Do
+                        <span class="task-count">0</span>
+                    </span>
+                </div>
+                <div class="tasks" id="todo-tasks"></div>
+            </div>
+
+            <!-- Done Column -->
+            <div class="column" id="done-column">
+                <div class="column-header">
+                    <span class="column-title">
+                        <i class="fas fa-circle" style="color: var(--done);"></i> Done
+                        <span class="task-count">0</span>
+                    </span>
+                </div>
+                <div class="tasks" id="done-tasks"></div>
+            </div>
+
+            <!-- Completed Column -->
+            <div class="column" id="completed-column">
+                <div class="column-header">
+                    <span class="column-title">
+                        <i class="fas fa-circle" style="color: var(--completed);"></i> Completed
+                        <span class="task-count">0</span>
+                    </span>
+                </div>
+                <div class="tasks" id="completed-tasks"></div>
+            </div>
+
+            <!-- Validated Column -->
+            <div class="column" id="validated-column">
+                <div class="column-header">
+                    <span class="column-title">
+                        <i class="fas fa-circle" style="color: var(--validated);"></i> Validated
+                        <span class="task-count">0</span>
+                    </span>
+                </div>
+                <div class="tasks" id="validated-tasks"></div>
+            </div>
+        </div>
+
+        <!-- Task Modal -->
+        <div class="modal" id="task-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>New Task</h2>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <form id="task-form">
+                    <div class="form-group">
+                        <label for="task-title">Title</label>
+                        <input type="text" id="task-title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="task-desc">Description</label>
+                        <textarea id="task-desc"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="task-status">Status</label>
+                        <select id="task-status">
+                            <option value="todo">To Do</option>
+                            <option value="done">Done</option>
+                            <option value="completed">Completed</option>
+                            <option value="validated">Validated</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="task-deadline">Deadline</label>
+                        <input type="datetime-local" id="task-deadline">
+                    </div>
+                    <div class="form-group">
+                        <label>Responsibles</label>
+                        <div class="select-multi" id="responsibles-select">
+                            <div class="select-multi-option" data-value="iheb">Iheb</div>
+                            <div class="select-multi-option" data-value="amal">Amal</div>
+                            <div class="select-multi-option" data-value="azer">Azer</div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Create Task</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAdjb7XIpEky9b_FcgNS0TLgjl7VQEW9qs",
+            authDomain: "gestionprojet-coach.firebaseapp.com",
+            databaseURL: "https://gestionprojet-coach-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "gestionprojet-coach",
+            storageBucket: "gestionprojet-coach.appspot.com",
+            messagingSenderId: "42128207267",
+            appId: "1:42128207267:web:156f6e73222fe8eebb3e16"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements
+            const newTaskBtn = document.getElementById('new-task-btn');
+            const taskModal = document.getElementById('task-modal');
+            const closeModal = document.querySelector('.close-modal');
+            const taskForm = document.getElementById('task-form');
+            const responsiblesSelect = document.getElementById('responsibles-select');
+            
+            // Database reference
+            const tasksRef = database.ref('tasks');
+            let tasks = [];
+            let draggedTask = null;
+            let selectedResponsibles = [];
+
+            // Initialize the database if empty
+            function initializeDatabase() {
+                tasksRef.once('value', (snapshot) => {
+                    if (!snapshot.exists()) {
+                        const initialData = {
+                            "task1": {
+                                "id": "task1",
+                                "title": "Sample Task",
+                                "description": "This is a sample task",
+                                "status": "todo",
+                                "createdAt": new Date().toISOString(),
+                                "deadline": "",
+                                "responsibles": ["iheb"]
+                            }
+                        };
+                        tasksRef.set(initialData);
+                        console.log("Database initialized with sample data");
+                    }
+                });
+            }
+
+            // Load tasks from Firebase
+            function loadTasks() {
+                tasksRef.on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    tasks = data ? Object.values(data) : [];
+                    console.log("Tasks loaded:", tasks);
+                    renderTasks();
+                    updateCounters();
+                });
+            }
+
+            // Render tasks to the DOM
+            function renderTasks() {
+                const columns = {
+                    todo: document.getElementById('todo-tasks'),
+                    done: document.getElementById('done-tasks'),
+                    completed: document.getElementById('completed-tasks'),
+                    validated: document.getElementById('validated-tasks')
+                };
+
+                // Clear all columns
+                Object.values(columns).forEach(col => {
+                    if (col) col.innerHTML = '';
+                });
+
+                // Add tasks to their respective columns
+                tasks.forEach(task => {
+                    const column = columns[task.status];
+                    if (column) {
+                        const taskEl = createTaskElement(task);
+                        column.appendChild(taskEl);
+                    }
+                });
+
+                // Initialize drag and drop
+                initDragAndDrop();
+            }
+
+            // Create a task element
+            function createTaskElement(task) {
+                const taskEl = document.createElement('div');
+                taskEl.className = `task ${task.status}`;
+                taskEl.draggable = true;
+                taskEl.dataset.id = task.id;
+
+                const deadlineText = task.deadline 
+                    ? new Date(task.deadline).toLocaleString() 
+                    : 'No deadline';
+
+                const responsiblesHTML = task.responsibles && task.responsibles.length > 0
+                    ? task.responsibles.map(r => 
+                        `<span class="responsible-tag">${getResponsibleName(r)}</span>`
+                      ).join('')
+                    : '<em>No responsibles</em>';
+
+                taskEl.innerHTML = `
+                    <h3>${task.title}</h3>
+                    <p>${task.description}</p>
+                    <div class="task-meta">
+                        <small>Created: ${new Date(task.createdAt).toLocaleDateString()}</small>
+                        <small>Deadline: ${deadlineText}</small>
+                    </div>
+                    <div class="task-responsibles">
+                        ${responsiblesHTML}
+                    </div>
+                    <div class="task-actions">
+                        <button class="task-btn edit-btn" data-id="${task.id}">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="task-btn delete-btn" data-id="${task.id}">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                `;
+
+                return taskEl;
+            }
+
+            // Get responsible name from value
+            function getResponsibleName(value) {
+                const names = {
+                    'iheb': 'Iheb',
+                    'amal': 'Amal',
+                    'azer': 'Azer'
+                };
+                return names[value] || value;
+            }
+
+            // Update task counters - CORRIGÉE
+            function updateCounters() {
+                // Reset all counters to 0 first
+                document.querySelectorAll('.task-count').forEach(counter => {
+                    counter.textContent = '0';
+                });
+
+                // Count tasks by status
+                const statusCounts = {
+                    todo: 0,
+                    done: 0,
+                    completed: 0,
+                    validated: 0
+                };
+
+                tasks.forEach(task => {
+                    if (task.status && statusCounts.hasOwnProperty(task.status)) {
+                        statusCounts[task.status]++;
+                    }
+                });
+
+                // Update the counters in the DOM
+                for (const status in statusCounts) {
+                    const counter = document.querySelector(`#${status}-column .task-count`);
+                    if (counter) {
+                        counter.textContent = statusCounts[status];
+                    }
+                }
+            }
+
+            // Initialize drag and drop
+            function initDragAndDrop() {
+                const taskElements = document.querySelectorAll('.task');
+                const columns = document.querySelectorAll('.tasks');
+
+                taskElements.forEach(task => {
+                    task.addEventListener('dragstart', dragStart);
+                    task.addEventListener('dragend', dragEnd);
+                });
+
+                columns.forEach(column => {
+                    column.addEventListener('dragover', dragOver);
+                    column.addEventListener('dragenter', dragEnter);
+                    column.addEventListener('dragleave', dragLeave);
+                    column.addEventListener('drop', drop);
+                });
+            }
+
+            // Drag and drop handlers
+            function dragStart(e) {
+                draggedTask = this;
+                this.classList.add('dragging');
+                e.dataTransfer.setData('text/plain', this.dataset.id);
+            }
+
+            function dragEnd() {
+                this.classList.remove('dragging');
+            }
+
+            function dragOver(e) {
+                e.preventDefault();
+            }
+
+            function dragEnter(e) {
+                e.preventDefault();
+                this.classList.add('dropzone');
+            }
+
+            function dragLeave() {
+                this.classList.remove('dropzone');
+            }
+
+            function drop(e) {
+                e.preventDefault();
+                this.classList.remove('dropzone');
+                
+                const taskId = e.dataTransfer.getData('text/plain');
+                const newStatus = this.parentElement.id.replace('-column', '');
+                
+                // Find the task in local array
+                const taskIndex = tasks.findIndex(t => t.id === taskId);
+                if (taskIndex !== -1) {
+                    // Update locally first for immediate feedback
+                    const previousStatus = tasks[taskIndex].status;
+                    tasks[taskIndex].status = newStatus;
+                    updateCounters();
+                    
+                    // Then update in Firebase
+                    tasksRef.child(taskId).update({ status: newStatus })
+                        .catch(error => {
+                            console.error("Failed to update task status:", error);
+                            // Revert local change if Firebase update fails
+                            tasks[taskIndex].status = previousStatus;
+                            updateCounters();
+                        });
+                }
+            }
+
+            // Handle responsible selection
+            responsiblesSelect.addEventListener('click', (e) => {
+                const option = e.target.closest('.select-multi-option');
+                if (option) {
+                    const value = option.dataset.value;
+                    option.classList.toggle('selected');
+                    
+                    if (option.classList.contains('selected')) {
+                        selectedResponsibles.push(value);
+                    } else {
+                        selectedResponsibles = selectedResponsibles.filter(r => r !== value);
+                    }
+                }
+            });
+
+            // Form submission
+            taskForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const newTask = {
+                    id: 'task' + Date.now(),
+                    title: document.getElementById('task-title').value,
+                    description: document.getElementById('task-desc').value,
+                    status: document.getElementById('task-status').value,
+                    deadline: document.getElementById('task-deadline').value,
+                    createdAt: new Date().toISOString(),
+                    responsibles: [...selectedResponsibles]
+                };
+
+                // Save to Firebase
+                tasksRef.child(newTask.id).set(newTask)
+                    .then(() => {
+                        // Add to local array and update counters
+                        tasks.push(newTask);
+                        updateCounters();
+                    });
+                
+                // Close modal and reset form
+                taskModal.style.display = 'none';
+                taskForm.reset();
+                selectedResponsibles = [];
+                document.querySelectorAll('.select-multi-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+            });
+
+            // Event delegation for edit/delete buttons
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.delete-btn')) {
+                    const taskId = e.target.closest('.delete-btn').dataset.id;
+                    if (confirm('Are you sure you want to delete this task?')) {
+                        tasksRef.child(taskId).remove()
+                            .then(() => {
+                                // Remove from local array and update counters
+                                tasks = tasks.filter(t => t.id !== taskId);
+                                updateCounters();
+                            });
+                    }
+                }
+                
+                if (e.target.closest('.edit-btn')) {
+                    const taskId = e.target.closest('.edit-btn').dataset.id;
+                    const task = tasks.find(t => t.id === taskId);
+                    if (task) {
+                        document.getElementById('task-title').value = task.title;
+                        document.getElementById('task-desc').value = task.description;
+                        document.getElementById('task-status').value = task.status;
+                        document.getElementById('task-deadline').value = task.deadline;
+                        
+                        // Set selected responsibles
+                        selectedResponsibles = [...(task.responsibles || [])];
+                        document.querySelectorAll('.select-multi-option').forEach(opt => {
+                            opt.classList.toggle(
+                                'selected',
+                                selectedResponsibles.includes(opt.dataset.value)
+                            );
+                        });
+                        
+                        taskModal.style.display = 'flex';
+                        
+                        // Update form submission to edit instead of create
+                        taskForm.onsubmit = (e) => {
+                            e.preventDefault();
+                            const updatedTask = {
+                                ...task,
+                                title: document.getElementById('task-title').value,
+                                description: document.getElementById('task-desc').value,
+                                status: document.getElementById('task-status').value,
+                                deadline: document.getElementById('task-deadline').value,
+                                responsibles: [...selectedResponsibles]
+                            };
+                            tasksRef.child(taskId).update(updatedTask)
+                                .then(() => {
+                                    // Update local array and counters
+                                    const index = tasks.findIndex(t => t.id === taskId);
+                                    if (index !== -1) {
+                                        tasks[index] = updatedTask;
+                                        updateCounters();
+                                    }
+                                });
+                            taskModal.style.display = 'none';
+                            taskForm.reset();
+                            selectedResponsibles = [];
+                            document.querySelectorAll('.select-multi-option').forEach(opt => {
+                                opt.classList.remove('selected');
+                            });
+                        };
+                    }
+                }
+            });
+
+            // Modal controls
+            newTaskBtn.addEventListener('click', () => {
+                taskModal.style.display = 'flex';
+                // Reset form handler for new task
+                taskForm.onsubmit = (e) => {
+                    e.preventDefault();
+                    const newTask = {
+                        id: 'task' + Date.now(),
+                        title: document.getElementById('task-title').value,
+                        description: document.getElementById('task-desc').value,
+                        status: document.getElementById('task-status').value,
+                        deadline: document.getElementById('task-deadline').value,
+                        createdAt: new Date().toISOString(),
+                        responsibles: [...selectedResponsibles]
+                    };
+                    tasksRef.child(newTask.id).set(newTask)
+                        .then(() => {
+                            tasks.push(newTask);
+                            updateCounters();
+                        });
+                    taskModal.style.display = 'none';
+                    taskForm.reset();
+                    selectedResponsibles = [];
+                    document.querySelectorAll('.select-multi-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                };
+            });
+
+            closeModal.addEventListener('click', () => {
+                taskModal.style.display = 'none';
+                taskForm.reset();
+                selectedResponsibles = [];
+                document.querySelectorAll('.select-multi-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+            });
+
+            // Initialize the app
+            initializeDatabase();
+            loadTasks();
+        });
+    </script>
+</body>
+</html>
